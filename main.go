@@ -1,19 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
-	"time"
 )
+
+const stringPostgresConnection "user=emailmarketing dbname=psqlog sslmode=disable"
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("You need to set the filename\nexample: ./clean_csv sample.csv")
-		return
+		log.Fatal("You need to set the filename\nexample: psqlog main.log")
 	}
 
 	content, err := ioutil.ReadFile(os.Args[1])
@@ -23,26 +25,57 @@ func main() {
 	}
 	lines := strings.Split(string(content), "\n")
 
-	for i, line := range lines {
-		parseLine(strings.ToLower(line), i)
+	db := getConnection()
+	defer db.Close()
+
+	txn, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
 	}
-	// fmt.Println("Total of lines:", len(lines))
+
+	stmt, err := txn.Prepare(pq.CopyIn("logs", "username", "database", "duration", "action", "table_name", "sql", "created_at"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, line := range lines {
+		parseLine(strings.ToLower(line), stmt)
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.Close()
 }
 
-func parseLine(line string, lineNumber int) {
+func parseLine(line string, stmt *sql.Stmt) {
 	re := regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) brt \[[0-9]*\]: \[(.*?)\] user=(.*?),db=(.*?) log:  duration: (.*?) ms  (.*?): (.*)`)
 	matches := re.FindStringSubmatch(line)
 	if len(matches) > 0 {
-		date := matches[1]
-		user := matches[3]
-		db := matches[4]
-		t, _ := time.ParseDuration(matches[5] + "ms")
-		time := strconv.FormatFloat(t.Seconds(), 'f', 3, 64)
+		username := matches[3]
+		database := matches[4]
+		duration := matches[5]
 		sql := strings.Trim(matches[7], " ")
-
 		action, table := parseSql(sql)
+		created_at := matches[1]
+
 		if action != "" && table != "" {
-			fmt.Println(date, user, db, time, action, table, sql)
+			_, err := stmt.Exec(username, database, duration, action, table, sql, created_at)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 }
@@ -191,4 +224,12 @@ func parseAlter(sql string) (string, string) {
 		table = matches[1]
 	}
 	return action, table
+}
+
+func getConnection() *sql.DB {
+	connection, err := sql.Open("postgres", stringPostgresConnection)
+	if err != nil {
+		log.Fatal("Error:", err)
+	}
+	return connection
 }
