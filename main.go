@@ -2,29 +2,64 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/lib/pq"
 	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
 
-const stringPostgresConnection "user=emailmarketing dbname=psqlog sslmode=disable"
+const (
+	postgresConnection = "user=emailmarketing dbname=psqlog sslmode=disable"
+	runWithRoutines    = true
+	gophers_count      = 20
+)
 
 func main() {
+
 	if len(os.Args) < 2 {
 		log.Fatal("You need to set the filename\nexample: psqlog main.log")
 	}
 
-	content, err := ioutil.ReadFile(os.Args[1])
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	lines := strings.Split(string(content), "\n")
+	lines := redFile(os.Args[1])
 
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(gophers_count)
+
+	if runWithRoutines {
+		lines_count := len(lines)
+		partial_count := lines_count / gophers_count
+
+		for i := 0; i < gophers_count; i++ {
+			var finish int
+			start := i * partial_count
+			if i == (gophers_count - 1) {
+				finish = lines_count
+			} else {
+				finish = ((i + 1) * partial_count)
+			}
+
+			go gopher(i, lines[start:finish], &waitGroup)
+		}
+	} else {
+		gopher(gophers_count, lines, &waitGroup)
+	}
+	waitGroup.Wait()
+}
+
+func redFile(fileName string) []string {
+	content, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Fatal("Error:", err)
+	}
+
+	return strings.Split(string(content), "\n")
+}
+
+func gopher(i int, lines []string, waitGroup *sync.WaitGroup) {
+	log.Println("Starting:", i)
 	db := getConnection()
 	defer db.Close()
 
@@ -58,6 +93,8 @@ func main() {
 	}
 
 	db.Close()
+	log.Println("Finishing:", i)
+	waitGroup.Done()
 }
 
 func parseLine(line string, stmt *sql.Stmt) {
@@ -227,7 +264,7 @@ func parseAlter(sql string) (string, string) {
 }
 
 func getConnection() *sql.DB {
-	connection, err := sql.Open("postgres", stringPostgresConnection)
+	connection, err := sql.Open("postgres", postgresConnection)
 	if err != nil {
 		log.Fatal("Error:", err)
 	}
