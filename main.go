@@ -13,7 +13,7 @@ import (
 
 const (
 	postgresConnection = "user=emailmarketing dbname=psqlog sslmode=disable"
-	runWithRoutines    = true
+	runWithRoutines    = false
 	gophers_count      = 20
 )
 
@@ -26,9 +26,10 @@ func main() {
 	lines := redFile(os.Args[1])
 
 	var waitGroup sync.WaitGroup
-	waitGroup.Add(gophers_count)
 
 	if runWithRoutines {
+		waitGroup.Add(gophers_count)
+
 		lines_count := len(lines)
 		partial_count := lines_count / gophers_count
 
@@ -44,7 +45,9 @@ func main() {
 			go gopher(i, lines[start:finish], &waitGroup)
 		}
 	} else {
-		gopher(gophers_count, lines, &waitGroup)
+		waitGroup.Add(1)
+
+		gopher(1, lines, &waitGroup)
 	}
 	waitGroup.Wait()
 }
