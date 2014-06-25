@@ -1,8 +1,8 @@
-It's a simple script that I crette to parse the postgres log file and insert into a table. Its extract "username", "database", "duration", "action", "table_name", "sql", "created_at" from log file.
+It's a simple script that I created to parse the postgres log file and insert into a table. It extracts "username", "database", "duration", "action", "table_name", "sql", "created_at" from log file.
 
 # How to use
 
-first clone the repo
+first, clone the repo
 
 `git clone git@github.com:marciotrindade/pgsqlog.git`
 
