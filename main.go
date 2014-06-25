@@ -17,6 +17,17 @@ const (
 	gophers_count      = 20
 )
 
+var lineRegexp = regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) brt \[[0-9]*\]: \[(.*?)\] user=(.*?),db=(.*?) log:  duration: (.*?) ms  (.*?): (.*)`)
+var sqlRegexp = regexp.MustCompile(`([a-z]*)(.*)`)
+var selectRegexp = regexp.MustCompile(`select(.*?)from "?([a-z0-9_\.]*)"?(.*)`)
+var updateRegexp = regexp.MustCompile(`update "?([a-z0-9_\.]*)"?(.*)`)
+var insertRegexp = regexp.MustCompile(`insert into "?([a-z0-9_\.]*)"?(.*)`)
+var copyRegexp = regexp.MustCompile(`copy "?([a-z0-9_\.]*)"?(.*)`)
+var deleteRegexp = regexp.MustCompile(`delete from "?([[a-z0-9_\.]*)"?(.*)`)
+var createRegexp = regexp.MustCompile(`create +(table|index|unique index) "?([[a-z0-9_\.]*)"?(.*)`)
+var dropRegexp = regexp.MustCompile(`drop (table|schema)( if exists)? "?([[a-z0-9_\.]*)"?(.*)`)
+var alterRegexp = regexp.MustCompile(`alter table "?([[a-z0-9_\.]*)"?(.*)`)
+
 func main() {
 
 	if len(os.Args) < 2 {
@@ -101,8 +112,7 @@ func gopher(i int, lines []string, waitGroup *sync.WaitGroup) {
 }
 
 func parseLine(line string, stmt *sql.Stmt) {
-	re := regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) brt \[[0-9]*\]: \[(.*?)\] user=(.*?),db=(.*?) log:  duration: (.*?) ms  (.*?): (.*)`)
-	matches := re.FindStringSubmatch(line)
+	matches := lineRegexp.FindStringSubmatch(line)
 	if len(matches) > 0 {
 		username := matches[3]
 		database := matches[4]
@@ -124,8 +134,7 @@ func parseSql(sql string) (string, string) {
 	var action string
 	var table string
 
-	re := regexp.MustCompile(`([a-z]*)(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := sqlRegexp.FindStringSubmatch(sql)
 	switch matches[1] {
 	case "select":
 		action, table = parseSelect(sql)
@@ -151,8 +160,7 @@ func parseSelect(sql string) (string, string) {
 	var table string
 	action := "select"
 
-	re := regexp.MustCompile(`select(.*?)from "?([a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := selectRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[2]
@@ -164,8 +172,7 @@ func parseUpdate(sql string) (string, string) {
 	var table string
 	action := "update"
 
-	re := regexp.MustCompile(`update "?([a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := updateRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[1]
@@ -177,8 +184,7 @@ func parseInsert(sql string) (string, string) {
 	var table string
 	action := "insert"
 
-	re := regexp.MustCompile(`insert into "?([a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := insertRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[1]
@@ -190,8 +196,7 @@ func parseCopy(sql string) (string, string) {
 	var table string
 	action := "copy"
 
-	re := regexp.MustCompile(`copy "?([a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := copyRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[1]
@@ -203,8 +208,7 @@ func parseDelete(sql string) (string, string) {
 	var table string
 	action := "delete"
 
-	re := regexp.MustCompile(`delete from "?([[a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := deleteRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[1]
@@ -216,8 +220,7 @@ func parseCreate(sql string) (string, string) {
 	var table string
 	var action string
 
-	re := regexp.MustCompile(`create +(table|index|unique index) "?([[a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := createRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[2]
@@ -238,8 +241,7 @@ func parseDrop(sql string) (string, string) {
 	var table string
 	var action string
 
-	re := regexp.MustCompile(`drop (table|schema)( if exists)? "?([[a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := dropRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[3]
@@ -257,8 +259,7 @@ func parseAlter(sql string) (string, string) {
 	var table string
 	action := "alter table"
 
-	re := regexp.MustCompile(`alter table "?([[a-z0-9_\.]*)"?(.*)`)
-	matches := re.FindStringSubmatch(sql)
+	matches := alterRegexp.FindStringSubmatch(sql)
 
 	if len(matches) > 0 {
 		table = matches[1]
