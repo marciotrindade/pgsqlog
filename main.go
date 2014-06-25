@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -29,6 +30,7 @@ var dropRegexp = regexp.MustCompile(`drop (table|schema)( if exists)? "?([[a-z0-
 var alterRegexp = regexp.MustCompile(`alter table "?([[a-z0-9_\.]*)"?(.*)`)
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	if len(os.Args) < 2 {
 		log.Fatal("You need to set the filename\nexample: psqlog main.log")
