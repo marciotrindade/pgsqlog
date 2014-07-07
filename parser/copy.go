@@ -7,7 +7,7 @@ import (
 var copyRegexp = regexp.MustCompile(`copy "?([a-z0-9_\.]*)"?(.*)`)
 
 func TableOfCopy(query string) string {
-	matches := selectRegexp.FindStringSubmatch(query)
+	matches := copyRegexp.FindStringSubmatch(query)
 
 	if len(matches) > 0 {
 		return matches[1]
