@@ -1,12 +1,12 @@
 package main
 
 import (
-	"./parser"
 	"database/sql"
 	"github.com/lib/pq"
 	"io/ioutil"
 	"log"
 	"os"
+	"pgsqlog/parser"
 	"regexp"
 	"runtime"
 	"strings"
