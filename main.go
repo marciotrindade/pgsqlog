@@ -83,7 +83,7 @@ func gopher(i int, lines []string, waitGroup *sync.WaitGroup) {
 }
 
 func parseLine(line string, stmt *sql.Stmt) {
-	logLine := parse.LogLine{Line: line}
+	logLine := parser.LogLine{Line: line}
 	logLine.Parse()
 	if logLine.Action != "" && logLine.Table != "" {
 		_, err := stmt.Exec(logLine.Username, logLine.Database, logLine.Duration, logLine.Action, logLine.Table, logLine.Query, logLine.Created_at)
