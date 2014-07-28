@@ -2,15 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"github.com/lib/pq"
 	"io/ioutil"
 	"log"
 	"os"
-	"pgsqlog/parser"
 	"regexp"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/lib/pq"
+	"github.com/marciotrindade/pgsqlog/parser"
 )
 
 const (
