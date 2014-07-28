@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	postgresConnection = "user=emailmarketing dbname=psqlog sslmode=disable"
-	gophers_count      = 10
+	postgresConnection = "user=marciotrindade dbname=psqlog sslmode=disable"
+	gophersCount       = 10
 )
 
 var lineRegexp = regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) brt \[[0-9]*\]: \[(.*?)\] user=(.*?),db=(.*?) log:  duration: (.*?) ms  (.*?): (.*)`)
@@ -33,18 +33,18 @@ func main() {
 
 	var waitGroup sync.WaitGroup
 
-	waitGroup.Add(gophers_count)
+	waitGroup.Add(gophersCount)
 
-	lines_count := len(lines)
-	partial_count := lines_count / gophers_count
+	linesCount := len(lines)
+	partialCount := linesCount / gophersCount
 
-	for i := 0; i < gophers_count; i++ {
+	for i := 0; i < gophersCount; i++ {
 		var finish int
-		start := i * partial_count
-		if i == (gophers_count - 1) {
-			finish = lines_count
+		start := i * partialCount
+		if i == (gophersCount - 1) {
+			finish = linesCount
 		} else {
-			finish = ((i + 1) * partial_count)
+			finish = ((i + 1) * partialCount)
 		}
 
 		go gopher(i, lines[start:finish], &waitGroup)
