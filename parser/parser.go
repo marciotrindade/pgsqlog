@@ -9,14 +9,14 @@ var lineRegexp = regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{
 var sqlRegexp = regexp.MustCompile(`([a-z]*)(.*)`)
 
 type LogLine struct {
-	Action     string
-	Created_at string
-	Database   string
-	Duration   string
-	Line       string
-	Query      string
-	Table      string
-	Username   string
+	Action    string
+	CreatedAt string
+	Database  string
+	Duration  string
+	Line      string
+	Query     string
+	Table     string
+	Username  string
 }
 
 func (parse *LogLine) Parse() {
@@ -27,7 +27,7 @@ func (parse *LogLine) Parse() {
 		parse.Database = matches[4]
 		parse.Duration = matches[5]
 		parse.Query = strings.Trim(matches[7], " ")
-		parse.Created_at = matches[1]
+		parse.CreatedAt = matches[1]
 		parse.Sql()
 	}
 }
