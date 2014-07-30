@@ -8,6 +8,7 @@ import (
 var lineRegexp = regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) brt \[[0-9]*\]: \[(.*?)\] user=(.*?),db=(.*?) log:  duration: (.*?) ms  (.*?): (.*)`)
 var sqlRegexp = regexp.MustCompile(`([a-z]*)(.*)`)
 
+// LogLine struct to represent a log with separated attributes
 type LogLine struct {
 	Action    string
 	CreatedAt string
@@ -19,6 +20,7 @@ type LogLine struct {
 	Username  string
 }
 
+// Parse extract attributes from log line
 func (parse *LogLine) Parse() {
 	matches := lineRegexp.FindStringSubmatch(parse.Line)
 
@@ -32,6 +34,7 @@ func (parse *LogLine) Parse() {
 	}
 }
 
+// Sql discover what type of query is
 func (parse *LogLine) Sql() {
 	matches := sqlRegexp.FindStringSubmatch(parse.Query)
 
