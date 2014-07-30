@@ -27,6 +27,16 @@ func TestTableOfDropWithSchema(t *testing.T) {
 	assert.Equal(table, "account_29633")
 }
 
+func TestTableOfDropWithIndex(t *testing.T) {
+	assert := assert.New(t)
+
+	query := `drop index if exists "index_openings_on_contact_id"`
+	action, table := TableOfDrop(query)
+
+	assert.Equal(action, "drop index")
+	assert.Equal(table, "index_openings_on_contact_id")
+}
+
 func TestTableOfDropWithoutDropCommand(t *testing.T) {
 	assert := assert.New(t)
 

@@ -4,7 +4,7 @@ import (
 	"regexp"
 )
 
-var dropRegexp = regexp.MustCompile(`drop (table|schema)( if exists)? "?([[a-z0-9_\.]*)"?(.*)`)
+var dropRegexp = regexp.MustCompile(`drop (table|schema|index)( if exists)? "?([[a-z0-9_\.]*)"?(.*)`)
 
 // TableOfDrop extract action and table name from a query
 // It's retuns the action and table name just if it's match with a drop command
@@ -22,6 +22,8 @@ func TableOfDrop(query string) (string, string) {
 			action = "drop table"
 		case "schema":
 			action = "drop schema"
+		case "index":
+			action = "drop index"
 		}
 	}
 	return action, table
