@@ -86,7 +86,7 @@ func parseLine(line string, stmt *sql.Stmt) {
 	logLine := parser.LogLine{Line: line}
 	logLine.Parse()
 	if logLine.Action != "" && logLine.Table != "" {
-		_, err := stmt.Exec(logLine.Username, logLine.Database, logLine.Duration, logLine.Action, logLine.Table, logLine.Query, logLine.Created_at)
+		_, err := stmt.Exec(logLine.Username, logLine.Database, logLine.Duration, logLine.Action, logLine.Table, logLine.Query, logLine.CreatedAt)
 		if err != nil {
 			log.Fatal(err)
 		}
