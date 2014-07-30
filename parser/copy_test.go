@@ -1,33 +1,29 @@
 package parser_test
 
 import (
-	. "pgsqlog/parser"
+	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/marciotrindade/pgsqlog/parser"
+	"github.com/stretchr/testify/assert"
 )
 
-var _ = Describe("Copy", func() {
-	Describe("TableOfCopy", func() {
-		Context("with schema name", func() {
-			It("extracts table name of query", func() {
-				query := "copy account_29512.import_19 (email,nome) from stdin (format 'csv')"
-				Expect(TableOfCopy(query)).To(Equal("account_29512.import_19"))
-			})
-		})
+func TestTableOfCopyWithCopyCommandAndSchema(t *testing.T) {
+	assert := assert.New(t)
 
-		Context("without schema name", func() {
-			It("extracts table name of query", func() {
-				query := "copy import_19 (email,nome) from stdin (format 'csv')"
-				Expect(TableOfCopy(query)).To(Equal("import_19"))
-			})
-		})
+	query := "copy account_29512.import_19 (email,nome) from stdin (format 'csv')"
+	assert.Equal(TableOfCopy(query), "account_29512.import_19")
+}
 
-		Context("when query is not a copy command", func() {
-			It("returns empty string", func() {
-				query := "select * from logs where duration > 1"
-				Expect(TableOfCopy(query)).To(BeEmpty())
-			})
-		})
-	})
-})
+func TestTableOfCopyWithCopyCommand(t *testing.T) {
+	assert := assert.New(t)
+
+	query := "copy import_19 (email,nome) from stdin (format 'csv')"
+	assert.Equal(TableOfCopy(query), "import_19")
+}
+
+func TestTableOfCopyWithoutCopyCommand(t *testing.T) {
+	assert := assert.New(t)
+
+	query := "select * from logs where duration > 1"
+	assert.Equal(TableOfCopy(query), "")
+}

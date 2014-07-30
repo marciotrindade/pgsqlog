@@ -1,65 +1,38 @@
 package parser_test
 
 import (
-	. "pgsqlog/parser"
+	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/marciotrindade/pgsqlog/parser"
+	"github.com/stretchr/testify/assert"
 )
 
-var _ = Describe("Drop", func() {
-	var (
-		query  string
-		action string
-		table  string
-	)
+func TestTableOfDropWithTable(t *testing.T) {
+	assert := assert.New(t)
 
-	Describe("#TableOfDrop", func() {
+	query := "drop table import_5;"
+	action, table := TableOfDrop(query)
 
-		Context("when drop a table", func() {
-			BeforeEach(func() {
-				query = `drop table import_5;`
-				action, table = TableOfDrop(query)
-			})
+	assert.Equal(action, "drop table")
+	assert.Equal(table, "import_5")
+}
 
-			It("extracts action name of query", func() {
-				Expect(action).To(Equal("drop table"))
-			})
+func TestTableOfDropWithSchema(t *testing.T) {
+	assert := assert.New(t)
 
-			It("extracts table name of query", func() {
-				Expect(table).To(Equal("import_5"))
-			})
-		})
+	query := "drop schema account_29633 cascade;"
+	action, table := TableOfDrop(query)
 
-		Context("when drop a schema", func() {
-			BeforeEach(func() {
-				query = `drop schema account_29633 cascade;`
-				action, table = TableOfDrop(query)
-			})
+	assert.Equal(action, "drop schema")
+	assert.Equal(table, "account_29633")
+}
 
-			It("extracts action name of query", func() {
-				Expect(action).To(Equal("drop schema"))
-			})
+func TestTableOfDropWithoutDropCommand(t *testing.T) {
+	assert := assert.New(t)
 
-			It("extracts table name of query", func() {
-				Expect(table).To(Equal("account_29633"))
-			})
-		})
+	query := "select * from logs where duration > 1"
+	action, table := TableOfDrop(query)
 
-		Context("when query is not a create command", func() {
-			BeforeEach(func() {
-				query = "select * from logs where duration > 1"
-				action, table = TableOfDrop(query)
-			})
-
-			It("returns empty action", func() {
-				Expect(action).To(BeEmpty())
-			})
-
-			It("returns empty table", func() {
-				Expect(table).To(BeEmpty())
-			})
-		})
-
-	})
-})
+	assert.Equal(action, "")
+	assert.Equal(table, "")
+}

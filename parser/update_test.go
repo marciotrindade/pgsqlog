@@ -1,28 +1,24 @@
 package parser_test
 
 import (
-	. "pgsqlog/parser"
+	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/marciotrindade/pgsqlog/parser"
+	"github.com/stretchr/testify/assert"
 )
 
-var _ = Describe("Update", func() {
-	Describe("TableOfUpdate", func() {
-		var query string
+func TestTableOfUpdateWithUpdateCommand(t *testing.T) {
+	assert := assert.New(t)
 
-		Context("when query is a delete command", func() {
-			It("extracts table name of query", func() {
-				query = `update "messages" set "clicks_count" = coalesce("clicks_count", 0) + 1 where "messages"."id" = 3`
-				Expect(TableOfUpdate(query)).To(Equal("messages"))
-			})
-		})
+	query := `update "messages" set "clicks_count" = coalesce("clicks_count", 0) + 1 where "messages"."id" = 3`
 
-		Context("when query is not a copy command", func() {
-			It("returns empty string", func() {
-				query = `select  "messages".* from "messages"  where "messages"."id" = 112 limit 1`
-				Expect(TableOfUpdate(query)).To(BeEmpty())
-			})
-		})
-	})
-})
+	assert.Equal(TableOfUpdate(query), "messages")
+}
+
+func TestTableOfUpdateWithoutUpdateCommand(t *testing.T) {
+	assert := assert.New(t)
+
+	query := "select * from logs where duration > 1"
+
+	assert.Equal(TableOfUpdate(query), "")
+}
