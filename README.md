@@ -20,4 +20,3 @@ Then buid the program
 And run the program to read the file, parse and insert into database.
 
 `./pgsqlog PATH_OF_YOUR_FILE`
-
